@@ -255,6 +255,9 @@ mod tests {
     use std::io;
     use std::path::PathBuf;
 
+    use base64::Engine as _;
+    use base64::engine::general_purpose;
+
     use super::image_protocol::ImageProtocol;
     use super::*;
 
@@ -324,6 +327,7 @@ mod tests {
         let dir = tempfile::tempdir().unwrap();
         let frame = dir.path().join("frame.png");
         std::fs::write(&frame, b"png").unwrap();
+        let expected_payload = frame.canonicalize().unwrap().to_string_lossy().into_owned();
         let request = AmbientPetDraw {
             frame,
             protocol: ImageProtocol::KittyLocalFile,
@@ -343,8 +347,18 @@ mod tests {
         let output = String::from_utf8(output).unwrap();
         assert!(output.contains("a=d,d=I,i=49374,q=2;"));
         assert!(output.contains("\x1b[4;3H"));
-        assert!(output.contains("a=T,t=f,f=100,c=4,r=2,q=2,i=49374;"));
-        assert!(!output.contains("cG5n"));
+        let command_prefix = "a=T,t=f,f=100,c=4,r=2,q=2,i=49374;";
+        let payload_start =
+            output.find(command_prefix).expect("file transmit command") + command_prefix.len();
+        let payload_end = output[payload_start..]
+            .find("\x1b\\")
+            .map(|offset| payload_start + offset)
+            .expect("kitty command terminator");
+        let decoded_payload = general_purpose::STANDARD
+            .decode(&output[payload_start..payload_end])
+            .expect("local file payload is base64");
+        let decoded_path = String::from_utf8(decoded_payload).expect("payload is UTF-8 path");
+        assert_eq!(decoded_path, expected_payload);
         assert!(output.contains("\x1b8"));
     }
 

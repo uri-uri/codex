@@ -12,6 +12,8 @@ use crate::render::highlight::foreground_style_for_scopes;
 const STATUS_LINE_SEPARATOR: &str = " · ";
 const STATUS_LINE_COLOR_SATURATION_PERCENT: u16 = 85;
 const STATUS_LINE_COLOR_BRIGHTNESS_PERCENT: u16 = 100;
+const LIMIT_WARNING_REMAINING_PERCENT: f64 = 20.0;
+const LIMIT_CRITICAL_REMAINING_PERCENT: f64 = 5.0;
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum StatusLineAccent {
@@ -104,7 +106,9 @@ where
         if !spans.is_empty() {
             spans.push(STATUS_LINE_SEPARATOR.dim());
         }
-        let style = if use_theme_colors {
+        let style = if let Some(style) = limit_alert_style(item, &text) {
+            style
+        } else if use_theme_colors {
             let accent = StatusLineAccent::for_item(item);
             soften_status_line_style(
                 theme_style_for_accent(accent).unwrap_or_else(|| accent.fallback_style()),
@@ -121,6 +125,32 @@ where
     }
 
     (!spans.is_empty()).then(|| Line::from(spans))
+}
+
+fn limit_alert_style(item: StatusLineItem, text: &str) -> Option<Style> {
+    match item {
+        StatusLineItem::FiveHourLimit | StatusLineItem::WeeklyLimit => {}
+        _ => return None,
+    }
+
+    let remaining = remaining_percent_from_status_line_text(text)?;
+    if remaining <= LIMIT_CRITICAL_REMAINING_PERCENT {
+        Some(Style::default().red())
+    } else if remaining <= LIMIT_WARNING_REMAINING_PERCENT {
+        Some(Style::default().yellow())
+    } else {
+        None
+    }
+}
+
+fn remaining_percent_from_status_line_text(text: &str) -> Option<f64> {
+    let percent_index = text.find('%')?;
+    let number_start = text[..percent_index]
+        .char_indices()
+        .rev()
+        .find_map(|(idx, ch)| (!ch.is_ascii_digit() && ch != '.').then_some(idx + ch.len_utf8()))
+        .unwrap_or(0);
+    text[number_start..percent_index].trim().parse().ok()
 }
 
 fn soften_status_line_style(mut style: Style) -> Style {
@@ -284,6 +314,36 @@ mod tests {
                 .add_modifier
                 .contains(Modifier::UNDERLINED)
         );
+    }
+
+    #[test]
+    fn status_line_limits_warn_at_low_remaining_percent() {
+        let line = status_line_from_segments_with_resolver(
+            [
+                (StatusLineItem::FiveHourLimit, "5h 20% left".to_string()),
+                (StatusLineItem::WeeklyLimit, "weekly 5% left".to_string()),
+            ],
+            /*use_theme_colors*/ false,
+            |_| None,
+        )
+        .expect("status line");
+
+        assert_eq!(line.spans[0].style.fg, Some(Color::Yellow));
+        assert!(!line.spans[0].style.add_modifier.contains(Modifier::DIM));
+        assert_eq!(line.spans[2].style.fg, Some(Color::Red));
+        assert!(!line.spans[2].style.add_modifier.contains(Modifier::DIM));
+    }
+
+    #[test]
+    fn status_line_limits_use_normal_style_above_warning_threshold() {
+        let line = status_line_from_segments_with_resolver(
+            [(StatusLineItem::FiveHourLimit, "5h 21% left".to_string())],
+            /*use_theme_colors*/ true,
+            |_| None,
+        )
+        .expect("status line");
+
+        assert_eq!(line.spans[0].style.fg, Some(Color::Magenta));
     }
 
     #[test]
