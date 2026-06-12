@@ -44,6 +44,7 @@ impl StatusLineAccent {
             | StatusLineItem::ContextUsed
             | StatusLineItem::ContextWindowSize
             | StatusLineItem::UsedTokens
+            | StatusLineItem::LastTokens
             | StatusLineItem::TotalInputTokens
             | StatusLineItem::TotalOutputTokens => Self::Usage,
             StatusLineItem::FiveHourLimit | StatusLineItem::WeeklyLimit => Self::Limit,
@@ -136,11 +137,18 @@ fn limit_alert_style(item: StatusLineItem, text: &str) -> Option<Style> {
     let remaining = remaining_percent_from_status_line_text(text)?;
     if remaining <= LIMIT_CRITICAL_REMAINING_PERCENT {
         Some(Style::default().red())
+    } else if remaining <= LIMIT_WARNING_REMAINING_PERCENT && has_calendar_reset(text) {
+        Some(Style::default().red())
     } else if remaining <= LIMIT_WARNING_REMAINING_PERCENT {
         Some(Style::default().yellow())
     } else {
         None
     }
+}
+
+fn has_calendar_reset(text: &str) -> bool {
+    text.split_once(" reset ")
+        .is_some_and(|(_, reset)| reset.contains('/'))
 }
 
 fn remaining_percent_from_status_line_text(text: &str) -> Option<f64> {
@@ -332,6 +340,28 @@ mod tests {
         assert!(!line.spans[0].style.add_modifier.contains(Modifier::DIM));
         assert_eq!(line.spans[2].style.fg, Some(Color::Red));
         assert!(!line.spans[2].style.add_modifier.contains(Modifier::DIM));
+    }
+
+    #[test]
+    fn status_line_limits_use_reset_distance_for_warning_color() {
+        let line = status_line_from_segments_with_resolver(
+            [
+                (
+                    StatusLineItem::FiveHourLimit,
+                    "5h 15% left reset 3h12m".to_string(),
+                ),
+                (
+                    StatusLineItem::WeeklyLimit,
+                    "weekly 15% left reset 6/18 19:35".to_string(),
+                ),
+            ],
+            /*use_theme_colors*/ false,
+            |_| None,
+        )
+        .expect("status line");
+
+        assert_eq!(line.spans[0].style.fg, Some(Color::Yellow));
+        assert_eq!(line.spans[2].style.fg, Some(Color::Red));
     }
 
     #[test]

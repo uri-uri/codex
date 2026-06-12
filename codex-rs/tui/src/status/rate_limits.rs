@@ -69,6 +69,8 @@ pub(crate) const RATE_LIMIT_STALE_THRESHOLD_MINUTES: i64 = 15;
 pub(crate) struct RateLimitWindowDisplay {
     /// Percent used for the window.
     pub used_percent: f64,
+    /// Local reset timestamp for compact status-line rendering.
+    pub resets_at_datetime: Option<DateTime<Local>>,
     /// Human-readable local reset time.
     pub resets_at: Option<String>,
     /// Window length in minutes when provided by the server.
@@ -85,6 +87,7 @@ impl RateLimitWindowDisplay {
 
         Self {
             used_percent: f64::from(window.used_percent),
+            resets_at_datetime: resets_at_utc,
             resets_at,
             window_minutes: window.window_duration_mins,
         }
@@ -422,6 +425,7 @@ mod tests {
     fn window(used_percent: f64) -> RateLimitWindowDisplay {
         RateLimitWindowDisplay {
             used_percent,
+            resets_at_datetime: None,
             resets_at: Some("soon".to_string()),
             window_minutes: Some(300),
         }
@@ -481,11 +485,13 @@ mod tests {
             captured_at: now,
             primary: Some(RateLimitWindowDisplay {
                 used_percent: 20.0,
+                resets_at_datetime: None,
                 resets_at: Some("soon".to_string()),
                 window_minutes: Some(60),
             }),
             secondary: Some(RateLimitWindowDisplay {
                 used_percent: 40.0,
+                resets_at_datetime: None,
                 resets_at: Some("later".to_string()),
                 window_minutes: Some(2 * 60),
             }),

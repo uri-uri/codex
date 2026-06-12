@@ -6,6 +6,8 @@
 
 use super::*;
 
+const STATUS_LINE_RESET_THRESHOLD_PERCENT: f64 = 20.0;
+
 impl ChatWidget {
     /// Update the status indicator header and details.
     ///
@@ -371,6 +373,13 @@ impl ChatWidget {
             .unwrap_or_default()
     }
 
+    pub(super) fn status_line_last_usage(&self) -> TokenUsage {
+        self.token_info
+            .as_ref()
+            .map(|info| info.last_token_usage.clone())
+            .unwrap_or_default()
+    }
+
     pub(super) fn status_line_limit_display(
         &self,
         window: Option<&RateLimitWindowDisplay>,
@@ -378,7 +387,12 @@ impl ChatWidget {
     ) -> Option<String> {
         let window = window?;
         let remaining = (100.0f64 - window.used_percent).clamp(0.0f64, 100.0f64);
-        Some(format!("{label} {remaining:.0}% left"))
+        let reset = (remaining <= STATUS_LINE_RESET_THRESHOLD_PERCENT)
+            .then(|| status_line_reset_display(window))
+            .flatten()
+            .map(|reset| format!(" reset {reset}"))
+            .unwrap_or_default();
+        Some(format!("{label} {remaining:.0}% left{reset}"))
     }
 
     pub(super) fn status_line_reasoning_effort_label(
@@ -388,5 +402,28 @@ impl ChatWidget {
             None | Some(ReasoningEffortConfig::None) => "default".to_string(),
             Some(effort) => effort.as_str().to_string(),
         }
+    }
+}
+
+fn status_line_reset_display(window: &RateLimitWindowDisplay) -> Option<String> {
+    let reset_at = window.resets_at_datetime?;
+    let now = chrono::Local::now();
+    let until_reset = reset_at.signed_duration_since(now);
+
+    if until_reset.num_seconds() <= 0 {
+        return Some("now".to_string());
+    }
+
+    if until_reset <= chrono::Duration::hours(24) {
+        let total_minutes = until_reset.num_minutes().max(1);
+        let hours = total_minutes / 60;
+        let minutes = total_minutes % 60;
+        if hours > 0 {
+            Some(format!("{hours}h{minutes:02}m"))
+        } else {
+            Some(format!("{minutes}m"))
+        }
+    } else {
+        Some(reset_at.format("%-m/%-d %H:%M").to_string())
     }
 }

@@ -599,6 +599,15 @@ impl ChatWidget {
                     Some(format!("{} used", format_tokens_compact(total)))
                 }
             }
+            StatusLineItem::LastTokens => {
+                let usage = self.status_line_last_usage();
+                let total = usage.blended_total();
+                if total <= 0 {
+                    None
+                } else {
+                    Some(format!("last {}", format_tokens_compact(total)))
+                }
+            }
             StatusLineItem::ContextRemaining => self
                 .status_line_context_remaining_percent()
                 .map(|remaining| format!("Context {remaining}% left")),
@@ -688,6 +697,7 @@ impl ChatWidget {
             StatusSurfacePreviewItem::CodexVersion => StatusLineItem::CodexVersion,
             StatusSurfacePreviewItem::ContextWindowSize => StatusLineItem::ContextWindowSize,
             StatusSurfacePreviewItem::UsedTokens => StatusLineItem::UsedTokens,
+            StatusSurfacePreviewItem::LastTokens => StatusLineItem::LastTokens,
             StatusSurfacePreviewItem::TotalInputTokens => StatusLineItem::TotalInputTokens,
             StatusSurfacePreviewItem::TotalOutputTokens => StatusLineItem::TotalOutputTokens,
             StatusSurfacePreviewItem::SessionId => StatusLineItem::SessionId,

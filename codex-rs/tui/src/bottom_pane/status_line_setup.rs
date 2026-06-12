@@ -118,6 +118,9 @@ pub(crate) enum StatusLineItem {
     /// Total tokens used in the current session.
     UsedTokens,
 
+    /// Tokens used by the latest model response.
+    LastTokens,
+
     /// Total input tokens consumed.
     TotalInputTokens,
 
@@ -177,6 +180,7 @@ impl StatusLineItem {
                 "Total context window size in tokens (omitted when unknown)"
             }
             StatusLineItem::UsedTokens => "Total tokens used in session (omitted when zero)",
+            StatusLineItem::LastTokens => "Tokens used by the latest model response",
             StatusLineItem::TotalInputTokens => "Total input tokens used in session",
             StatusLineItem::TotalOutputTokens => "Total output tokens used in session",
             StatusLineItem::SessionId => "Current thread identifier (omitted until thread starts)",
@@ -211,6 +215,7 @@ impl StatusLineItem {
             StatusLineItem::CodexVersion => StatusSurfacePreviewItem::CodexVersion,
             StatusLineItem::ContextWindowSize => StatusSurfacePreviewItem::ContextWindowSize,
             StatusLineItem::UsedTokens => StatusSurfacePreviewItem::UsedTokens,
+            StatusLineItem::LastTokens => StatusSurfacePreviewItem::LastTokens,
             StatusLineItem::TotalInputTokens => StatusSurfacePreviewItem::TotalInputTokens,
             StatusLineItem::TotalOutputTokens => StatusSurfacePreviewItem::TotalOutputTokens,
             StatusLineItem::SessionId => StatusSurfacePreviewItem::SessionId,

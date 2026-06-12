@@ -145,6 +145,37 @@ async fn token_usage_update_uses_runtime_context_window() {
 }
 
 #[tokio::test]
+async fn status_line_last_tokens_uses_latest_turn_usage() {
+    let (mut chat, _rx, _ops) = make_chatwidget_manual(/*model_override*/ None).await;
+    let total_usage = TokenUsage {
+        input_tokens: 100_000,
+        output_tokens: 2_000,
+        total_tokens: 102_000,
+        ..TokenUsage::default()
+    };
+    let last_usage = TokenUsage {
+        input_tokens: 1_200,
+        output_tokens: 250,
+        total_tokens: 1_450,
+        ..TokenUsage::default()
+    };
+
+    handle_token_count(
+        &mut chat,
+        Some(TokenUsageInfo {
+            total_token_usage: total_usage,
+            last_token_usage: last_usage,
+            model_context_window: Some(950_000),
+        }),
+    );
+
+    assert_eq!(
+        chat.status_line_value_for_item(crate::bottom_pane::StatusLineItem::LastTokens),
+        Some("last 1.45K".to_string())
+    );
+}
+
+#[tokio::test]
 async fn status_line_git_summary_items_render_values() {
     let (mut chat, _rx, _ops) = make_chatwidget_manual(/*model_override*/ None).await;
     chat.status_line_git_summary = Some(StatusLineGitSummary {
@@ -622,6 +653,87 @@ async fn status_line_legacy_limit_items_prefer_matching_windows() {
     assert_eq!(
         chat.status_line_value_for_item(crate::bottom_pane::StatusLineItem::WeeklyLimit),
         Some("weekly 6% left".to_string())
+    );
+}
+
+#[tokio::test]
+async fn status_line_limit_adds_relative_reset_when_low_and_reset_is_within_day() {
+    let (mut chat, _rx, _op_rx) = make_chatwidget_manual(/*model_override*/ None).await;
+    let reset_at = chrono::Local::now() + chrono::Duration::minutes(3 * 60 + 12);
+
+    chat.on_rate_limit_snapshot(Some(RateLimitSnapshot {
+        limit_id: None,
+        limit_name: None,
+        primary: Some(RateLimitWindow {
+            used_percent: 85,
+            window_duration_mins: Some(5 * 60),
+            resets_at: Some(reset_at.timestamp()),
+        }),
+        secondary: None,
+        credits: None,
+        individual_limit: None,
+        plan_type: None,
+        rate_limit_reached_type: None,
+    }));
+
+    let value = chat
+        .status_line_value_for_item(crate::bottom_pane::StatusLineItem::FiveHourLimit)
+        .expect("status line value");
+    assert!(value == "5h 15% left reset 3h11m" || value == "5h 15% left reset 3h12m");
+}
+
+#[tokio::test]
+async fn status_line_limit_adds_calendar_reset_when_low_and_reset_is_later() {
+    let (mut chat, _rx, _op_rx) = make_chatwidget_manual(/*model_override*/ None).await;
+    let reset_at = chrono::Local::now() + chrono::Duration::days(3);
+
+    chat.on_rate_limit_snapshot(Some(RateLimitSnapshot {
+        limit_id: None,
+        limit_name: None,
+        primary: Some(RateLimitWindow {
+            used_percent: 85,
+            window_duration_mins: Some(5 * 60),
+            resets_at: Some(reset_at.timestamp()),
+        }),
+        secondary: None,
+        credits: None,
+        individual_limit: None,
+        plan_type: None,
+        rate_limit_reached_type: None,
+    }));
+
+    assert_eq!(
+        chat.status_line_value_for_item(crate::bottom_pane::StatusLineItem::FiveHourLimit),
+        Some(format!(
+            "5h 15% left reset {}",
+            reset_at.format("%-m/%-d %H:%M")
+        ))
+    );
+}
+
+#[tokio::test]
+async fn status_line_limit_omits_reset_when_remaining_is_above_threshold() {
+    let (mut chat, _rx, _op_rx) = make_chatwidget_manual(/*model_override*/ None).await;
+    let reset_at = chrono::Local::now() + chrono::Duration::hours(3);
+
+    chat.on_rate_limit_snapshot(Some(RateLimitSnapshot {
+        limit_id: None,
+        limit_name: None,
+        primary: Some(RateLimitWindow {
+            used_percent: 79,
+            window_duration_mins: Some(5 * 60),
+            resets_at: Some(reset_at.timestamp()),
+        }),
+        secondary: None,
+        credits: None,
+        individual_limit: None,
+        plan_type: None,
+        rate_limit_reached_type: None,
+    }));
+
+    assert_eq!(
+        chat.status_line_value_for_item(crate::bottom_pane::StatusLineItem::FiveHourLimit),
+        Some("5h 21% left".to_string())
     );
 }
 

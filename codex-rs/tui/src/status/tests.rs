@@ -59,6 +59,7 @@ fn stale_monthly_limit_marks_fresh_rolling_snapshot_stale() {
         captured_at: now,
         primary: Some(RateLimitWindowDisplay {
             used_percent: 20.0,
+            resets_at_datetime: None,
             resets_at: Some("soon".to_string()),
             window_minutes: Some(300),
         }),
