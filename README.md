@@ -17,13 +17,19 @@ After installing, restart Codex.
 ### Windows PowerShell
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\install.ps1
+$url = "https://raw.githubusercontent.com/uri-uri/codex/codex-limit-statusline/install.ps1"
+$file = Join-Path $env:TEMP "codex-limit-statusline-install.ps1"
+Invoke-WebRequest $url -OutFile $file
+powershell -ExecutionPolicy Bypass -File $file
 ```
 
 ### macOS / Linux
 
 ```sh
-sh ./install.sh
+url="https://raw.githubusercontent.com/uri-uri/codex/codex-limit-statusline/install.sh"
+file="${TMPDIR:-/tmp}/codex-limit-statusline-install.sh"
+curl -fsSL "$url" -o "$file"
+sh "$file"
 ```
 
 ## What It Changes
@@ -41,13 +47,19 @@ sh ./install.sh
 ### Windows PowerShell
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\uninstall.ps1
+$url = "https://raw.githubusercontent.com/uri-uri/codex/codex-limit-statusline/uninstall.ps1"
+$file = Join-Path $env:TEMP "codex-limit-statusline-uninstall.ps1"
+Invoke-WebRequest $url -OutFile $file
+powershell -ExecutionPolicy Bypass -File $file
 ```
 
 ### macOS / Linux
 
 ```sh
-sh ./uninstall.sh
+url="https://raw.githubusercontent.com/uri-uri/codex/codex-limit-statusline/uninstall.sh"
+file="${TMPDIR:-/tmp}/codex-limit-statusline-uninstall.sh"
+curl -fsSL "$url" -o "$file"
+sh "$file"
 ```
 
 The uninstall script removes this exact status line setting when present. If you
