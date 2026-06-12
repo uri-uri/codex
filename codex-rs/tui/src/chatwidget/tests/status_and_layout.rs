@@ -657,7 +657,7 @@ async fn status_line_legacy_limit_items_prefer_matching_windows() {
 }
 
 #[tokio::test]
-async fn status_line_limit_adds_relative_reset_when_low_and_reset_is_within_day() {
+async fn status_line_limit_adds_relative_reset_when_reset_is_within_day() {
     let (mut chat, _rx, _op_rx) = make_chatwidget_manual(/*model_override*/ None).await;
     let reset_at = chrono::Local::now() + chrono::Duration::minutes(3 * 60 + 12);
 
@@ -683,7 +683,7 @@ async fn status_line_limit_adds_relative_reset_when_low_and_reset_is_within_day(
 }
 
 #[tokio::test]
-async fn status_line_limit_adds_calendar_reset_when_low_and_reset_is_later() {
+async fn status_line_limit_adds_calendar_reset_when_reset_is_later() {
     let (mut chat, _rx, _op_rx) = make_chatwidget_manual(/*model_override*/ None).await;
     let reset_at = chrono::Local::now() + chrono::Duration::days(3);
 
@@ -712,7 +712,7 @@ async fn status_line_limit_adds_calendar_reset_when_low_and_reset_is_later() {
 }
 
 #[tokio::test]
-async fn status_line_limit_omits_reset_when_remaining_is_above_threshold() {
+async fn status_line_limit_adds_reset_when_remaining_is_above_warning_threshold() {
     let (mut chat, _rx, _op_rx) = make_chatwidget_manual(/*model_override*/ None).await;
     let reset_at = chrono::Local::now() + chrono::Duration::hours(3);
 
@@ -731,10 +731,10 @@ async fn status_line_limit_omits_reset_when_remaining_is_above_threshold() {
         rate_limit_reached_type: None,
     }));
 
-    assert_eq!(
-        chat.status_line_value_for_item(crate::bottom_pane::StatusLineItem::FiveHourLimit),
-        Some("5h 21% left".to_string())
-    );
+    let value = chat
+        .status_line_value_for_item(crate::bottom_pane::StatusLineItem::FiveHourLimit)
+        .expect("status line value");
+    assert!(value == "5h 21% left reset 2h59m" || value == "5h 21% left reset 3h00m");
 }
 
 #[tokio::test]

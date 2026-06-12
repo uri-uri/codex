@@ -6,8 +6,6 @@
 
 use super::*;
 
-const STATUS_LINE_RESET_THRESHOLD_PERCENT: f64 = 20.0;
-
 impl ChatWidget {
     /// Update the status indicator header and details.
     ///
@@ -387,9 +385,7 @@ impl ChatWidget {
     ) -> Option<String> {
         let window = window?;
         let remaining = (100.0f64 - window.used_percent).clamp(0.0f64, 100.0f64);
-        let reset = (remaining <= STATUS_LINE_RESET_THRESHOLD_PERCENT)
-            .then(|| status_line_reset_display(window))
-            .flatten()
+        let reset = status_line_reset_display(window)
             .map(|reset| format!(" reset {reset}"))
             .unwrap_or_default();
         Some(format!("{label} {remaining:.0}% left{reset}"))
