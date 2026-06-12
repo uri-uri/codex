@@ -1,6 +1,6 @@
 # Codex Limit Statusline
 
-Codex CLI の TUI 下部フッターに、レート制限の残量を表示します。
+Codex CLI の TUI 下部フッターに、レート制限の残量と直近ターンの token 使用量を表示します。
 
 これは既に Codex をインストール済みのユーザー向けの小さなインストーラです。Codex 本体や認証情報には触らず、Codex の設定ファイルだけを更新します。
 
@@ -8,7 +8,7 @@ Codex CLI の TUI 下部フッターに、レート制限の残量を表示し�
 
 ```toml
 [tui]
-status_line = ["five-hour-limit", "weekly-limit"]
+status_line = ["five-hour-limit", "weekly-limit", "last-tokens"]
 ```
 
 インストール後は Codex を再起動してください。
@@ -72,10 +72,17 @@ Codex では残りの利用枠として表示されます。
 ```text
 5h 99% left
 weekly 61% left
+last 1.45K
 ```
 
 `left` は「残り」という意味です。たとえば `5h 99% left` は、5時間枠が99%残っているという意味です。
 
 ## 注意
 
-残量が少ないときに黄色や赤で警告するには、Codex TUI 本体側の対応が必要です。設定ファイルだけを変更するこのインストーラでは、安全に色付き警告を追加することはできません。
+残量が少ないときに黄色や赤で警告する機能や、`reset 3h12m` / `reset 6/18 19:35` のような回復時刻表示には、Codex TUI 本体側の対応が必要です。設定ファイルだけを変更するこのインストーラでは、安全に色付き警告や reset 表示を追加することはできません。
+
+本体改修ブランチはこちらです。
+
+```text
+https://github.com/uri-uri/codex/tree/feature/status-line-rate-limit-alerts
+```

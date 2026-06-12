@@ -1,6 +1,7 @@
 # Codex Limit Statusline
 
-Show Codex rate-limit remaining status in the Codex CLI TUI footer.
+Show Codex rate-limit remaining status and latest turn token usage in the
+Codex CLI TUI footer.
 
 [日本語README](README.ja.md)
 
@@ -9,7 +10,7 @@ config file:
 
 ```toml
 [tui]
-status_line = ["five-hour-limit", "weekly-limit"]
+status_line = ["five-hour-limit", "weekly-limit", "last-tokens"]
 ```
 
 After installing, restart Codex.
@@ -75,7 +76,15 @@ Codex displays these values as remaining quota, for example:
 ```text
 5h 99% left
 weekly 61% left
+last 1.45K
 ```
 
 Color warnings for low remaining quota require Codex TUI support and cannot be
 added safely by a config-only installer.
+
+Reset times such as `reset 3h12m` or `reset 6/18 19:35` also require Codex TUI
+source support. The source patch is here:
+
+```text
+https://github.com/uri-uri/codex/tree/feature/status-line-rate-limit-alerts
+```

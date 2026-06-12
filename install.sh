@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-status_line='status_line = ["five-hour-limit", "weekly-limit"]'
+status_line='status_line = ["five-hour-limit", "weekly-limit", "last-tokens"]'
 codex_home="${CODEX_HOME:-$HOME/.codex}"
 config_path="$codex_home/config.toml"
 
@@ -68,4 +68,4 @@ awk -v status_line="$status_line" '
 mv "$tmp_path" "$config_path"
 
 printf 'Updated %s\n' "$config_path"
-printf 'Restart Codex to see: 5h limit and weekly limit in the footer.\n'
+printf 'Restart Codex to see: 5h limit, weekly limit, and latest token usage in the footer.\n'

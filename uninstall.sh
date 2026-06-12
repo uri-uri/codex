@@ -13,7 +13,7 @@ timestamp="$(date +%Y%m%d-%H%M%S)"
 cp "$config_path" "$config_path.backup-$timestamp"
 
 tmp_path="$config_path.tmp.$$"
-grep -v '^[[:space:]]*status_line[[:space:]]*=[[:space:]]*\["five-hour-limit",[[:space:]]*"weekly-limit"\][[:space:]]*$' "$config_path" > "$tmp_path" || true
+grep -v '^[[:space:]]*status_line[[:space:]]*=[[:space:]]*\["five-hour-limit",[[:space:]]*"weekly-limit",[[:space:]]*"last-tokens"\][[:space:]]*$' "$config_path" > "$tmp_path" || true
 mv "$tmp_path" "$config_path"
 
 printf 'Removed Codex limit status line from %s\n' "$config_path"

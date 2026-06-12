@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$statusLinePattern = '^\s*status_line\s*=\s*\["five-hour-limit",\s*"weekly-limit"\]\s*$'
+$statusLinePattern = '^\s*status_line\s*=\s*\["five-hour-limit",\s*"weekly-limit",\s*"last-tokens"\]\s*$'
 $codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
 $configPath = Join-Path $codexHome "config.toml"
 

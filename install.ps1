@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-$statusLine = 'status_line = ["five-hour-limit", "weekly-limit"]'
+$statusLine = 'status_line = ["five-hour-limit", "weekly-limit", "last-tokens"]'
 $codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
 $configPath = Join-Path $codexHome "config.toml"
 
@@ -77,4 +77,4 @@ $newContent = Set-CodexStatusLine $content
 )
 
 Write-Host "Updated $configPath"
-Write-Host "Restart Codex to see: 5h limit and weekly limit in the footer."
+Write-Host "Restart Codex to see: 5h limit, weekly limit, and latest token usage in the footer."
