@@ -2,6 +2,8 @@
 
 Show Codex rate-limit remaining status in the Codex CLI TUI footer.
 
+[日本語README](README.ja.md)
+
 This is a tiny installer for existing Codex users. It only updates your Codex
 config file:
 
