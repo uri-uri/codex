@@ -18,8 +18,8 @@ status_line = ["five-hour-limit", "weekly-limit", "last-tokens"]
 ### Windows PowerShell
 
 ```powershell
-$commit = "7e33c15563603545923845a75f6226110f7d824a"
-$expected = "8de50e6fe15127235d1a85d3d000140f43289933e03c4e2813cc4e3b93ae39d8"
+$commit = "a563f261205fb13df2d94596eaab95fe67874a3a"
+$expected = "78ec6a8d240bc88fb111c3faa49ff86d41c4292cde2eaa63532b2b8955617e77"
 $url = "https://raw.githubusercontent.com/uri-uri/codex/$commit/install.ps1"
 $file = Join-Path $env:TEMP "codex-limit-statusline-install.ps1"
 
@@ -36,7 +36,7 @@ try {
 ### macOS / Linux
 
 ```sh
-commit="7e33c15563603545923845a75f6226110f7d824a"
+commit="a563f261205fb13df2d94596eaab95fe67874a3a"
 expected="e7af80460a58cad5ccbfb68b4938a34b4b770573fbee67d03a8d2f088dc97670"
 url="https://raw.githubusercontent.com/uri-uri/codex/$commit/install.sh"
 file="$(mktemp "${TMPDIR:-/tmp}/codex-limit-statusline-install.XXXXXX")"
@@ -70,7 +70,7 @@ rm -f "$file"
 ### Windows PowerShell
 
 ```powershell
-$commit = "7e33c15563603545923845a75f6226110f7d824a"
+$commit = "a563f261205fb13df2d94596eaab95fe67874a3a"
 $expected = "8aec301aa42cc7fdfaa55d6bd3d554e39e06c633f6571f47c92beeb15eaa8bf1"
 $url = "https://raw.githubusercontent.com/uri-uri/codex/$commit/uninstall.ps1"
 $file = Join-Path $env:TEMP "codex-limit-statusline-uninstall.ps1"
@@ -88,7 +88,7 @@ try {
 ### macOS / Linux
 
 ```sh
-commit="7e33c15563603545923845a75f6226110f7d824a"
+commit="a563f261205fb13df2d94596eaab95fe67874a3a"
 expected="39363f620ddbea3b70cc6d16400aa707087c9f40d0e44d974fc4770ae53768cc"
 url="https://raw.githubusercontent.com/uri-uri/codex/$commit/uninstall.sh"
 file="$(mktemp "${TMPDIR:-/tmp}/codex-limit-statusline-uninstall.XXXXXX")"
