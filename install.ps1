@@ -31,7 +31,7 @@ if (Test-Path $configPath) {
 function Set-CodexStatusLine {
   param([string] $Text)
 
-  $lines = if ($Text.Length -gt 0) { $Text -split "`r?`n", -1 } else { @() }
+  $lines = if ($Text.Length -gt 0) { @($Text -split "`r?`n", -1) } else { @() }
   $result = New-Object System.Collections.Generic.List[string]
   $inTui = $false
   $sawTui = $false
