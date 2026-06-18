@@ -38,7 +38,7 @@ token_env_var = "PRIVATE_TOKEN"
 
   $content = Get-Content -LiteralPath $configPath -Raw
   Assert-True ($content.Contains('status_line = ["five-hour-limit", "weekly-limit", "last-tokens"]')) "Status line was not installed."
-  Assert-True (($content | Select-String -Pattern 'status_line\s*=' -AllMatches).Matches.Count -eq 1) "Status line was duplicated."
+  Assert-True ([regex]::Matches($content, '(?m)^\s*status_line\s*=').Count -eq 1) "Status line was duplicated."
   Assert-True ($content.Contains('token_env_var = "PRIVATE_TOKEN"')) "Unrelated config was changed."
   Assert-True ($authBefore -eq (Get-FileHash -Algorithm SHA256 -LiteralPath $authPath).Hash) "auth.json was modified."
   Assert-True (@(Get-ChildItem -LiteralPath $codexHome -Filter "config.toml.backup-*").Count -ge 1) "Backup was not created."
@@ -46,7 +46,7 @@ token_env_var = "PRIVATE_TOKEN"
 
   & (Join-Path $repoDir "install.ps1")
   $content = Get-Content -LiteralPath $configPath -Raw
-  Assert-True (($content | Select-String -Pattern 'status_line\s*=' -AllMatches).Matches.Count -eq 1) "Reinstall was not idempotent."
+  Assert-True ([regex]::Matches($content, '(?m)^\s*status_line\s*=').Count -eq 1) "Reinstall was not idempotent."
 
   & (Join-Path $repoDir "uninstall.ps1")
   $content = Get-Content -LiteralPath $configPath -Raw
