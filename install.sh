@@ -1,20 +1,38 @@
 #!/bin/sh
 set -eu
+umask 077
 
 status_line='status_line = ["five-hour-limit", "weekly-limit", "last-tokens"]'
 codex_home="${CODEX_HOME:-$HOME/.codex}"
 config_path="$codex_home/config.toml"
+tmp_path=""
+
+cleanup() {
+  if [ -n "$tmp_path" ] && [ -e "$tmp_path" ]; then
+    rm -f "$tmp_path"
+  fi
+}
+
+trap cleanup EXIT HUP INT TERM
+
+if [ -L "$config_path" ]; then
+  printf 'Refusing to modify symbolic link: %s\n' "$config_path" >&2
+  exit 1
+fi
 
 mkdir -p "$codex_home"
 
 if [ -f "$config_path" ]; then
   timestamp="$(date +%Y%m%d-%H%M%S)"
-  cp "$config_path" "$config_path.backup-$timestamp"
+  backup_path="$config_path.backup-$timestamp-$$"
+  cp "$config_path" "$backup_path"
+  chmod 600 "$backup_path"
+  source_path="$config_path"
 else
-  : > "$config_path"
+  source_path="/dev/null"
 fi
 
-tmp_path="$config_path.tmp.$$"
+tmp_path="$(mktemp "$codex_home/.config.toml.tmp.XXXXXX")"
 
 awk -v status_line="$status_line" '
   BEGIN {
@@ -63,9 +81,12 @@ awk -v status_line="$status_line" '
       print status_line
     }
   }
-' "$config_path" > "$tmp_path"
+' "$source_path" > "$tmp_path"
 
-mv "$tmp_path" "$config_path"
+chmod 600 "$tmp_path"
+mv -f "$tmp_path" "$config_path"
+tmp_path=""
+trap - EXIT HUP INT TERM
 
 printf 'Updated %s\n' "$config_path"
 printf 'Restart Codex to see: 5h limit, weekly limit, and latest token usage in the footer.\n'

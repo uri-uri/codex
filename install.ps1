@@ -1,23 +1,37 @@
+Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $statusLine = 'status_line = ["five-hour-limit", "weekly-limit", "last-tokens"]'
 $codexHome = if ($env:CODEX_HOME) { $env:CODEX_HOME } else { Join-Path $HOME ".codex" }
 $configPath = Join-Path $codexHome "config.toml"
+$utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 
 New-Item -ItemType Directory -Force -Path $codexHome | Out-Null
 
+if (Test-Path -LiteralPath $configPath) {
+  $configItem = Get-Item -LiteralPath $configPath -Force
+  if ($configItem.PSIsContainer) {
+    throw "Config path is a directory: $configPath"
+  }
+  if (($configItem.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+    throw "Refusing to modify symbolic link or reparse point: $configPath"
+  }
+}
+
 if (Test-Path $configPath) {
   $timestamp = Get-Date -Format "yyyyMMdd-HHmmss"
-  Copy-Item -LiteralPath $configPath -Destination "$configPath.backup-$timestamp"
+  $backupSuffix = [Guid]::NewGuid().ToString("N").Substring(0, 8)
+  $backupPath = "$configPath.backup-$timestamp-$backupSuffix"
   $content = Get-Content -LiteralPath $configPath -Raw
 } else {
+  $backupPath = $null
   $content = ""
 }
 
 function Set-CodexStatusLine {
   param([string] $Text)
 
-  $lines = if ($Text.Length -gt 0) { $Text -split "`r?`n", -1 } else { @() }
+  [string[]] $lines = if ($Text.Length -gt 0) { $Text -split '\r?\n' } else { @() }
   $result = New-Object System.Collections.Generic.List[string]
   $inTui = $false
   $sawTui = $false
@@ -70,11 +84,20 @@ function Set-CodexStatusLine {
 }
 
 $newContent = Set-CodexStatusLine $content
-[System.IO.File]::WriteAllText(
-  $configPath,
-  $newContent,
-  [System.Text.UTF8Encoding]::new($false)
-)
+$tempPath = Join-Path $codexHome (".config.toml.tmp-" + [Guid]::NewGuid().ToString("N"))
+
+try {
+  [System.IO.File]::WriteAllText($tempPath, $newContent, $utf8NoBom)
+  if (Test-Path -LiteralPath $configPath) {
+    [System.IO.File]::Replace($tempPath, $configPath, $backupPath, $true)
+  } else {
+    [System.IO.File]::Move($tempPath, $configPath)
+  }
+} finally {
+  if (Test-Path -LiteralPath $tempPath) {
+    Remove-Item -LiteralPath $tempPath -Force
+  }
+}
 
 Write-Host "Updated $configPath"
 Write-Host "Restart Codex to see: 5h limit, weekly limit, and latest token usage in the footer."

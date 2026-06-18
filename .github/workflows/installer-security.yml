@@ -1,0 +1,36 @@
+name: Installer security checks
+
+on:
+  push:
+    branches:
+      - codex-limit-statusline
+      - "codex/**"
+  pull_request:
+    branches:
+      - codex-limit-statusline
+
+permissions:
+  contents: read
+
+jobs:
+  unix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Check shell syntax
+        run: |
+          sh -n install.sh
+          sh -n uninstall.sh
+          sh -n tests/test_unix.sh
+      - name: Test Unix installers
+        run: sh tests/test_unix.sh
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Test Windows installers
+        shell: pwsh
+        run: ./tests/test_windows.ps1

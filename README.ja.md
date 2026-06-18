@@ -1,73 +1,112 @@
 # Codex Limit Statusline
 
-Codex CLI の TUI 下部フッターに、レート制限の残量と直近ターンの token 使用量を表示します。
+Codex CLIのTUI下部に、利用枠の残量と直近ターンのtoken使用量を表示します。
 
-これは既に Codex をインストール済みのユーザー向けの小さなインストーラです。Codex 本体や認証情報には触らず、Codex の設定ファイルだけを更新します。
-
-追加される設定:
+このインストーラはCodex本体や認証情報には触らず、次の設定だけを追加します。
 
 ```toml
 [tui]
 status_line = ["five-hour-limit", "weekly-limit", "last-tokens"]
 ```
 
-インストール後は Codex を再起動してください。
+インストール後はCodexを再起動してください。
 
 ## インストール
+
+以下のコマンドは変更できないコミットからスクリプトを取得し、実行前にSHA-256を検証します。コミット番号をブランチ名へ変更しないでください。
 
 ### Windows PowerShell
 
 ```powershell
-$url = "https://raw.githubusercontent.com/uri-uri/codex/codex-limit-statusline/install.ps1"
+$commit = "feb60a08df50202f42fbf6a7dfa4c3217e20f2e0"
+$expected = "480945b92dacc036d13c45febdd0ef18095ebc62d191cf1a67bbf309b2584c3d"
+$url = "https://raw.githubusercontent.com/uri-uri/codex/$commit/install.ps1"
 $file = Join-Path $env:TEMP "codex-limit-statusline-install.ps1"
-Invoke-WebRequest $url -OutFile $file
-powershell -ExecutionPolicy Bypass -File $file
+
+try {
+  Invoke-WebRequest $url -OutFile $file
+  $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $file).Hash.ToLowerInvariant()
+  if ($actual -ne $expected) { throw "SHA-256 verification failed" }
+  powershell -NoProfile -ExecutionPolicy Bypass -File $file
+} finally {
+  Remove-Item -LiteralPath $file -Force -ErrorAction SilentlyContinue
+}
 ```
 
 ### macOS / Linux
 
 ```sh
-url="https://raw.githubusercontent.com/uri-uri/codex/codex-limit-statusline/install.sh"
-file="${TMPDIR:-/tmp}/codex-limit-statusline-install.sh"
+commit="feb60a08df50202f42fbf6a7dfa4c3217e20f2e0"
+expected="e7af80460a58cad5ccbfb68b4938a34b4b770573fbee67d03a8d2f088dc97670"
+url="https://raw.githubusercontent.com/uri-uri/codex/$commit/install.sh"
+file="$(mktemp "${TMPDIR:-/tmp}/codex-limit-statusline-install.XXXXXX")"
+
 curl -fsSL "$url" -o "$file"
+if command -v sha256sum >/dev/null 2>&1; then
+  actual="$(sha256sum "$file" | awk '{print $1}')"
+else
+  actual="$(shasum -a 256 "$file" | awk '{print $1}')"
+fi
+[ "$actual" = "$expected" ] || { rm -f "$file"; echo "SHA-256 verification failed" >&2; exit 1; }
 sh "$file"
+rm -f "$file"
 ```
 
-## 変更される内容
+## 変更内容
 
-- `~/.codex/config.toml` がなければ作成します。
-- `[tui].status_line` を追加または更新します。
-- 既存の設定ファイルを変更する前に、タイムスタンプ付きバックアップを作成します。
-- Codex の認証ファイルは読みません。
-- パッケージはインストールしません。
-- インストーラ実行後に追加のネットワーク通信はしません。
-- Codex の実行ファイルは置き換えません。
+- `~/.codex/config.toml`がなければ作成します。
+- `[tui].status_line`を追加または更新します。
+- 既存設定を置き換える前に、一意な名前のバックアップを作成します。
+- 同じディレクトリ内で原子的に設定ファイルを置き換えます。
+- `config.toml`がシンボリックリンクまたはreparse pointなら処理を拒否します。
+- Unixでは設定ファイルとバックアップを権限`600`で保存します。
+- 失敗時も一時ファイルを削除します。
+- Codexの認証ファイルは読み書きしません。
+- パッケージやCodex本体をインストール・置換しません。
+- ダウンロード済みスクリプトの開始後はネットワーク通信しません。
 
 ## アンインストール
 
 ### Windows PowerShell
 
 ```powershell
-$url = "https://raw.githubusercontent.com/uri-uri/codex/codex-limit-statusline/uninstall.ps1"
+$commit = "feb60a08df50202f42fbf6a7dfa4c3217e20f2e0"
+$expected = "8aec301aa42cc7fdfaa55d6bd3d554e39e06c633f6571f47c92beeb15eaa8bf1"
+$url = "https://raw.githubusercontent.com/uri-uri/codex/$commit/uninstall.ps1"
 $file = Join-Path $env:TEMP "codex-limit-statusline-uninstall.ps1"
-Invoke-WebRequest $url -OutFile $file
-powershell -ExecutionPolicy Bypass -File $file
+
+try {
+  Invoke-WebRequest $url -OutFile $file
+  $actual = (Get-FileHash -Algorithm SHA256 -LiteralPath $file).Hash.ToLowerInvariant()
+  if ($actual -ne $expected) { throw "SHA-256 verification failed" }
+  powershell -NoProfile -ExecutionPolicy Bypass -File $file
+} finally {
+  Remove-Item -LiteralPath $file -Force -ErrorAction SilentlyContinue
+}
 ```
 
 ### macOS / Linux
 
 ```sh
-url="https://raw.githubusercontent.com/uri-uri/codex/codex-limit-statusline/uninstall.sh"
-file="${TMPDIR:-/tmp}/codex-limit-statusline-uninstall.sh"
+commit="feb60a08df50202f42fbf6a7dfa4c3217e20f2e0"
+expected="39363f620ddbea3b70cc6d16400aa707087c9f40d0e44d974fc4770ae53768cc"
+url="https://raw.githubusercontent.com/uri-uri/codex/$commit/uninstall.sh"
+file="$(mktemp "${TMPDIR:-/tmp}/codex-limit-statusline-uninstall.XXXXXX")"
+
 curl -fsSL "$url" -o "$file"
+if command -v sha256sum >/dev/null 2>&1; then
+  actual="$(sha256sum "$file" | awk '{print $1}')"
+else
+  actual="$(shasum -a 256 "$file" | awk '{print $1}')"
+fi
+[ "$actual" = "$expected" ] || { rm -f "$file"; echo "SHA-256 verification failed" >&2; exit 1; }
 sh "$file"
+rm -f "$file"
 ```
 
-アンインストールスクリプトは、このインストーラが追加する `status_line` 設定を削除します。以前に独自の status line を設定していた場合は、インストール時に作成されたバックアップから戻してください。
+アンインストーラは、この設定と完全に一致する`status_line`だけを削除します。以前の独自設定へ戻す場合は、タイムスタンプ付きバックアップを復元してください。
 
 ## 表示例
-
-Codex では残りの利用枠として表示されます。
 
 ```text
 5h 99% left
@@ -75,14 +114,8 @@ weekly 61% left
 last 1.45K
 ```
 
-`left` は「残り」という意味です。たとえば `5h 99% left` は、5時間枠が99%残っているという意味です。
-
 ## 注意
 
-残量が少ないときに黄色や赤で警告する機能や、`reset 3h12m` / `reset 6/18 19:35` のような回復時刻表示には、Codex TUI 本体側の対応が必要です。設定ファイルだけを変更するこのインストーラでは、安全に色付き警告や reset 表示を追加することはできません。
+残量の警告色やリセット時刻にはCodex TUI本体の改修が必要です。`feature/status-line-rate-limit-alerts`は古いOpenAI Codexを基にした実験ブランチであり、保守された実行ファイル配布ではありません。
 
-本体改修ブランチはこちらです。
-
-```text
-https://github.com/uri-uri/codex/tree/feature/status-line-rate-limit-alerts
-```
+セキュリティ方針と非公開の報告先は[SECURITY.md](SECURITY.md)を参照してください。
