@@ -22,8 +22,8 @@ execution. Do not replace the commit with a branch name.
 ### Windows PowerShell
 
 ```powershell
-$commit = "1bc5a0c278eeb66f6531aa7b0e21fb101340b98c"
-$expected = "f63e108a5430d128a04e5e593a72a524be1f8991681bd16279654f3437fca295"
+$commit = "57abdd8af9115a2e0faa47642ca1c0170c46c81a"
+$expected = "bf9332cc545bf363c7f6fe7c1896034be7373a6c0996021a38f564ffef84e6f5"
 $url = "https://raw.githubusercontent.com/uri-uri/codex/$commit/install.ps1"
 $file = Join-Path $env:TEMP "codex-limit-statusline-install.ps1"
 
@@ -40,7 +40,7 @@ try {
 ### macOS / Linux
 
 ```sh
-commit="1bc5a0c278eeb66f6531aa7b0e21fb101340b98c"
+commit="57abdd8af9115a2e0faa47642ca1c0170c46c81a"
 expected="e7af80460a58cad5ccbfb68b4938a34b4b770573fbee67d03a8d2f088dc97670"
 url="https://raw.githubusercontent.com/uri-uri/codex/$commit/install.sh"
 file="$(mktemp "${TMPDIR:-/tmp}/codex-limit-statusline-install.XXXXXX")"
@@ -74,7 +74,7 @@ rm -f "$file"
 ### Windows PowerShell
 
 ```powershell
-$commit = "1bc5a0c278eeb66f6531aa7b0e21fb101340b98c"
+$commit = "57abdd8af9115a2e0faa47642ca1c0170c46c81a"
 $expected = "8aec301aa42cc7fdfaa55d6bd3d554e39e06c633f6571f47c92beeb15eaa8bf1"
 $url = "https://raw.githubusercontent.com/uri-uri/codex/$commit/uninstall.ps1"
 $file = Join-Path $env:TEMP "codex-limit-statusline-uninstall.ps1"
@@ -92,7 +92,7 @@ try {
 ### macOS / Linux
 
 ```sh
-commit="1bc5a0c278eeb66f6531aa7b0e21fb101340b98c"
+commit="57abdd8af9115a2e0faa47642ca1c0170c46c81a"
 expected="39363f620ddbea3b70cc6d16400aa707087c9f40d0e44d974fc4770ae53768cc"
 url="https://raw.githubusercontent.com/uri-uri/codex/$commit/uninstall.sh"
 file="$(mktemp "${TMPDIR:-/tmp}/codex-limit-statusline-uninstall.XXXXXX")"
